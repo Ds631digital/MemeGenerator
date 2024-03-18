@@ -1,0 +1,134 @@
+def is_odd_string(word):
+    """Is the sum of the character-positions odd?
+
+    Word is a simple word of uppercase/lowercase letters without punctuation.
+
+    For each character, find it's "character position" ("a"=1, "b"=2, etc).
+    Return True/False, depending on whether sum of those numbers is odd.
+
+    For example, these sum to 1, which is odd:
+
+        >>> is_odd_string('a')
+        True
+
+        >>> is_odd_string('A')
+        True
+
+    These sum to 4, which is not odd:
+
+        >>> is_odd_string('aaaa')
+        False
+
+        >>> is_odd_string('AAaa')
+        False
+
+    Longer example:
+
+        >>> is_odd_string('amazing')
+        True
+    """
+
+    # to find the char position, we'll change it's ordinal ASCII number into
+    # a 1-based number ("a" = 1, "b" = 2). To do that, let's subtract
+    # this from it
+
+    DIFF = ord("a") - 1
+
+    total = sum((ord(c) - DIFF) for c in word.lower())
+
+    return total % 2 == 1
+def reverse_string(phrase):
+    """Reverse string,
+
+        >>> reverse_string('awesome')
+        'emosewa'
+
+        >>> reverse_string('sauce')
+        'ecuas'
+    """
+
+    return phrase[::-1]
+def reverse_vowels(s):
+    """Reverse vowels in a string.
+
+    Characters which re not vowels do not change position in string, but all
+    vowels (y is not a vowel), should reverse their order.
+
+    >>> reverse_vowels("Hello!")
+    'Holle!'
+
+    >>> reverse_vowels("Tomatoes")
+    'Temotaos'
+
+    >>> reverse_vowels("Reverse Vowels In A String")
+    'RivArsI Vewols en e Streng'
+
+    reverse_vowels("aeiou")
+    'uoiea'
+
+    reverse_vowels("why try, shy fly?")
+    'why try, shy fly?''
+    """
+
+    vowels = set("aeiou")
+
+    string = list(s)
+    i = 0
+    j = len(s) - 1
+
+    while i < j:
+        if string[i].lower() not in vowels:
+            i += 1
+        elif string[j].lower() not in vowels:
+            j -= 1
+        else:
+            string[i], string[j] = string[j], string[i]
+            i += 1
+            j -= 1
+
+    return "".join(string)
+def read_file_list(filename):
+    """Read file and print out each line separately with a "-" before it.
+
+    For example, if we have a file, `dogs`, containing:
+        Fido
+        Whiskey
+        Dr. Sniffle
+
+    This should work:
+
+        >>> read_file_list("dogs")
+        - Fido
+        - Whiskey
+        - Dr. Sniffle
+
+    It will raise an error if the file cannot be found.
+    """
+
+    with open(filename) as f:
+        for line in f:
+            # remove newline at end of line!
+            line = line.strip()
+            print(f"- {line}")
+
+const users = [
+  {username: 'mlewis'},
+  {username: 'akagen'},
+  {username: 'msmith'}
+];
+
+findUserByUsername(users, 'mlewis') // {username: 'mlewis'}
+findUserByUsername(users, 'taco') // undefined
+function findUserByUsername(usersArray, username) {
+  return usersArray.find(function(user){
+    return user.username === username;
+  })
+}
+function removeUser(usersArray, username) {
+  let foundIndex = usersArray.findIndex(function(user){
+    return user.username === username;
+  })
+  if(foundIndex === -1) return;
+
+  return usersArray.splice(foundIndex,1)[0];
+}
