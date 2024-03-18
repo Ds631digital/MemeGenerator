@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+"""
+file_copy: Copy file line-by-line from source to destination
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage: file_copy <src> <dest>
+"""
+import sys
+import os
+
+def main():
+    # Check and retrieve command-line arguments
+    if len(sys.argv) != 3:
+        print(__doc__)
+        sys.exit(1)   # Return a non-zero value to indicate abnormal termination
+    fileIn  = sys.argv[1]
+    fileOut = sys.argv[2]
+
+    # Verify source file
+    if not os.path.isfile(fileIn):
+        print("error: {} does not exist".format(fileIn))
+        sys.exit(1)
+
+    # Verify destination file
+    if os.path.isfile(fileOut):
+        print("{} exists. Override (y/n)?".format(fileOut))
+        reply = input().strip().lower()
+        if reply[0] != 'y':
+           sys.exit(1)
+
+    # Process the file line-by-line
+    with open(fileIn, 'r') as fpIn, open(fileOut, 'w') as fpOut:
+        lineNumber = 0
+        for line in fpIn:
+            lineNumber += 1
+            line = line.rstrip()   # Strip trailing spaces and newline
+            fpOut.write("{}: {}\n".format(lineNumber, line))
+            # Need \n, which will be translated to platform-dependent newline
+        print("Number of lines: {}\n".format(lineNumber))
+
+if __name__ == '__main__':
+    main()
+>>> p1 = re.compile(r'[1-9][0-9]*|0')
+>>> inStr = 'abc123xyz456_7_00'
+>>> m = p1.search(inStr)
+>>> m
+<_sre.SRE_Match object; span=(3, 6), match='123'>
+>>> m.group()
+'123'
+>>> m.span()
+(3, 6)
+>>> m.start()
+3
+>>> m.end()
+6
+
+# You can search further by providing the begin search positions
+# in the form of search(str, [beginIdx]), e.g.,
+>>>  m = p1.search(inStr, m.end())
+>>>  m
+<_sre.SRE_Match object; span=(9, 12), match='456'>
+
+# Using a while loop
+>>> m = p1.search(inStr)
+>>> while m:
+        print(m, m.group())
+        m = p1.search(inStr, m.end())
+<_sre.SRE_Match object; span=(3, 6), match='123'>
+123
+<_sre.SRE_Match object; span=(9, 12), match='456'>
+456
+<_sre.SRE_Match object; span=(13, 14), match='7'>
+7
+<_sre.SRE_Match object; span=(15, 16), match='0'>
+0
+<_sre.SRE_Match object; span=(16, 17), match='0'>
+0
+>>> p2 = re.compile('(A)(\w+)', re.IGNORECASE)  # Two parenthesized back-references (capturing groups)
+>>> inStr = 'This is an apple.'
+>>> m = p2.search(inStr)
+>>> while m:
+        print(m)
+        print(m.group())    # show full match
+        print(m.groups())   # show capturing groups in tuple
+        for idx in range(1, m.lastindex + 1):  # index starts at 1
+            print(m.group(idx), end=',')   # show capturing group idx
+        print()
+        m = p2.search(inStr, m.end())
+<_sre.SRE_Match object; span=(8, 10), match='an'>
+an
+('a', 'n')
+a,n,
+<_sre.SRE_Match object; span=(11, 16), match='apple'>
+apple
+('a', 'pple')
+a,pple,
+# Using findall()
+>>> p1 = re.compile(r'[1-9][0-9]*|0')
+>>> inStr = 'abc123xyz456_7_00'
+>>> p1.findall(inStr)   # return a list of matched substrings
+['123', '456', '7', '0', '0']
+>>> for s in p1.findall(inStr):  # using for-in loop to process the list
+        print(s, end=' ')
+123 456 7 0 0
+
+# Using finditer()
+>>> for m in p1.finditer(inStr):  # using loop on iterator
+        print(m)
+<_sre.SRE_Match object; span=(3, 6), match='123'>
+<_sre.SRE_Match object; span=(9, 12), match='456'>
+<_sre.SRE_Match object; span=(13, 14), match='7'>
+<_sre.SRE_Match object; span=(15, 16), match='0'>
+<_sre.SRE_Match object; span=(16, 17), match='0'>
+
+>>> for m in p1.finditer(inStr):
+        print(m.group(), end=' ')
+123 456 7 0 0
