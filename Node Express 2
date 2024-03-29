@@ -1,0 +1,32 @@
+cd bankly
+npm install
+npm run seed # sets up the regular and test databases
+npm test  # runs jest
+npm start  # runs server w/ 'node'; feel free to change to nodemon
+/** Given two numbers, add positive versions of them together. */
+
+function addAbsoluteVals(x, y) {
+  return Math.abs(x) + y;
+}
+describe('addAbsoluteVals', function () {
+  it('should add two positive numbers', function () {
+    expect(addAbsoluteVals(2, 3)).toBe(5);
+  });
+});
+describe('addAbsoluteVals', function () {
+  it('should add two positive numbers', function () {
+    expect(addAbsoluteVals(2, 3)).toBe(5);
+  });
+
+  // TESTS BUG #1
+  it('should add two negative numbers', function () {
+    expect(add(-2, -3)).toBe(5);
+  });
+});
+- BUG #1: add() doesn't add positive version of y
+/** Given two numbers, add positive versions of them together. */
+
+function addAbsoluteVals(x, y) {
+  // FIXES BUG #1
+  return Math.abs(x) + Math.abs(y);
+}
