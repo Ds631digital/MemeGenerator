@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet">
+    <link href="/static/app.css" rel="stylesheet">
+    <title>{% block title %} {% endblock %}</title>
+</head>
+<body>
+
+    {% block content %}{% endblock %}
+    <div class="container">
+        <section class="messages">
+        {% for category,msg in get_flashed_messages(with_categories=true)%}
+        <p class="{{category}}">{{msg}}</p>
+        {% endfor %}
+        </section>
+    </div>
+    <!-- JQuery -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
+</body>
+</html>
+{% extends 'base.html' %}
+
+{% block title %}ForEx Converter!{% endblock %}
+
+{% block content %}
+
+
+<div class="container card">
+    <h5 class="card-header info-color white-text text-center py-4">
+        <strong>Currency Converter</strong>
+    </h5>
+    <!--Card content-->
+    <div class="card-body px-lg-5 pt-0">
+
+        <!-- Form -->
+        <form class="text-center" style="color: #757575;" method="POST" action="/result">
+
+            <!-- inputcurrency -->
+            <div class="md-form">
+                <input type="text" id="inputcurrency" name="inputcurrency" class="form-control">
+                <label for="materialinputcurrency">Converting from: </label>
+            </div>
+
+            <!-- outputcurrency -->
+            <div class="md-form">
+                <input type="text" id="outputcurrency" name="outputcurrency" class="form-control">
+                <label for="materialoutputcurrency">Converting to: </label>
+            </div>
+            <!-- result -->
+            <div class="md-form input-with-pre-icon">
+                <i class="fas fa-coins input-prefix"></i>
+                <input type="text" id="amount" name="amount" class="form-control">
+                <label for="amount">Amount</label>
+            </div>
+            <button type="submit" class="btn btn-info">Convert</button>
+        </form>
+    </div>
+        
+</div>
+
+{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}Results!{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-2"></div>
+        <div class="col-8">
+            <h1 class="display-2">{{input_symbol}}&nbsp;{{amount}}</h1>
+            <h2 class="display-4">({{input_name}})</h2>
+            <img src="/static/arrow-down.png" alt="down arrow" class="rounded mx-auto d-block">
+            <h1 class="display-2" id="result">{{output_symbol}}&nbsp;{{converted}}</h1>
+            <h2 class="display-4">({{output_name}})</h2>
+            <form action="/">
+                <button type="submit" class="btn btn-cyan btn-lg btn-block">Back To Home</button>
+            </form>
+        </div>
+        <div class="col-2"></div>
+    </div>
+</div>
+
+{% endblock %}
