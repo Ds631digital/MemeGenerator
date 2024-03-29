@@ -1,0 +1,206 @@
+"use strict";
+
+/** Express app for jobly. */
+
+const express = require("express");
+const cors = require("cors");
+
+const { NotFoundError } = require("./expressError");
+
+const { authenticateJWT } = require("./middleware/auth");
+const authRoutes = require("./routes/auth");
+const companiesRoutes = require("./routes/companies");
+const usersRoutes = require("./routes/users");
+const jobsRoutes = require("./routes/jobs");
+
+const morgan = require("morgan");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(morgan("tiny"));
+app.use(authenticateJWT);
+
+app.use("/auth", authRoutes);
+app.use("/companies", companiesRoutes);
+app.use("/users", usersRoutes);
+app.use("/jobs", jobsRoutes);
+
+
+/** Handle 404 errors -- this matches everything */
+app.use(function (req, res, next) {
+  return next(new NotFoundError());
+});
+
+/** Generic error handler; anything unhandled goes here. */
+app.use(function (err, req, res, next) {
+  if (process.env.NODE_ENV !== "test") console.error(err.stack);
+  const status = err.status || 500;
+  const message = err.message;
+
+  return res.status(status).json({
+    error: { message, status },
+  });
+});
+
+module.exports = app;
+const request = require("supertest");
+
+const app = require("./app");
+const db = require("./db");
+
+
+test("not found for site 404", async function () {
+  const resp = await request(app).get("/no-such-path");
+  expect(resp.statusCode).toEqual(404);
+});
+
+test("not found for site 404 (test stack print)", async function () {
+  process.env.NODE_ENV = "";
+  const resp = await request(app).get("/no-such-path");
+  expect(resp.statusCode).toEqual(404);
+  delete process.env.NODE_ENV;
+});
+
+afterAll(function () {
+  db.end();
+});
+"use strict";
+
+/** Shared config for application; can be required many places. */
+
+require("dotenv").config();
+require("colors");
+
+const SECRET_KEY = process.env.SECRET_KEY || "secret-dev";
+
+const PORT = +process.env.PORT || 3001;
+
+// Use dev database, testing database, or via env var, production database
+function getDatabaseUri() {
+  return (process.env.NODE_ENV === "test")
+      ? "postgresql:///jobly_test"
+      : process.env.DATABASE_URL || "postgresql:///jobly";
+}
+
+// Speed up bcrypt during tests, since the algorithm safety isn't being tested
+//
+// WJB: Evaluate in 2021 if this should be increased to 13 for non-test use
+const BCRYPT_WORK_FACTOR = process.env.NODE_ENV === "test" ? 1 : 12;
+
+console.log("Jobly Config:".green);
+console.log("SECRET_KEY:".yellow, SECRET_KEY);
+console.log("PORT:".yellow, PORT.toString());
+console.log("BCRYPT_WORK_FACTOR".yellow, BCRYPT_WORK_FACTOR);
+console.log("Database:".yellow, getDatabaseUri());
+console.log("---");
+
+module.exports = {
+  SECRET_KEY,
+  PORT,
+  BCRYPT_WORK_FACTOR,
+  getDatabaseUri,
+};
+"use strict";
+
+describe("config can come from env", function () {
+  test("works", function() {
+    process.env.SECRET_KEY = "abc";
+    process.env.PORT = "5000";
+    process.env.DATABASE_URL = "other";
+    process.env.NODE_ENV = "other";
+
+    const config = require("./config");
+    expect(config.SECRET_KEY).toEqual("abc");
+    expect(config.PORT).toEqual(5000);
+    expect(config.getDatabaseUri()).toEqual("other");
+    expect(config.BCRYPT_WORK_FACTOR).toEqual(12);
+
+    delete process.env.SECRET_KEY;
+    delete process.env.PORT;
+    delete process.env.BCRYPT_WORK_FACTOR;
+    delete process.env.DATABASE_URL;
+
+    expect(config.getDatabaseUri()).toEqual("postgresql:///jobly");
+    process.env.NODE_ENV = "test";
+
+    expect(config.getDatabaseUri()).toEqual("postgresql:///jobly_test");
+  });
+})
+"use strict";
+/** Database setup for jobly. */
+const { Client } = require("pg");
+const { getDatabaseUri } = require("./config");
+
+let db;
+
+if (process.env.NODE_ENV === "production") {
+  db = new Client({
+    connectionString: getDatabaseUri(),
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+} else {
+  db = new Client({
+    connectionString: getDatabaseUri()
+  });
+}
+
+db.connect();
+
+module.exports = db;
+/** ExpressError extends normal JS error so we can
+ *  add a status when we make an instance of it.
+ *
+ *  The error-handling middleware will return this.
+ */
+
+class ExpressError extends Error {
+  constructor(message, status) {
+    super();
+    this.message = message;
+    this.status = status;
+  }
+}
+
+/** 404 NOT FOUND error. */
+
+class NotFoundError extends ExpressError {
+  constructor(message = "Not Found") {
+    super(message, 404);
+  }
+}
+
+/** 401 UNAUTHORIZED error. */
+
+class UnauthorizedError extends ExpressError {
+  constructor(message = "Unauthorized") {
+    super(message, 401);
+  }
+}
+
+/** 400 BAD REQUEST error. */
+
+class BadRequestError extends ExpressError {
+  constructor(message = "Bad Request") {
+    super(message, 400);
+  }
+}
+
+/** 403 BAD REQUEST error. */
+
+class ForbiddenError extends ExpressError {
+  constructor(message = "Bad Request") {
+    super(message, 403);
+  }
+}
+
+module.exports = {
+  ExpressError,
+  NotFoundError,
+  UnauthorizedError,
+  BadRequestError,
+  ForbiddenError,
+};
