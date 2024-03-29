@@ -1,0 +1,46 @@
+const express = require('express');
+let axios = require('axios');
+var app = express();
+
+app.post('/', function(req, res, next) {
+  try {
+    let results = req.body.developers.map(async d => {
+      return await axios.get(`https://api.github.com/users/${d}`);
+    });
+    let out = results.map(r => ({ name: r.data.name, bio: r.data.bio }));
+
+    return res.send(JSON.stringify(out));
+  } catch {
+    next(err);
+  }
+});
+
+app.listen(3000);
+http://rithmschool.com
+http://postgresql.com
+http://foozlemcblargh.com
+https://nodejs.org/api/console.html
+$node urls.js urls.txt
+Couldn't downloadhttp://foozlemcblargh.com
+Wrote to rithmschool.com
+Wrote to nodejs.org
+Wrote to postgresql.com
+
+$ls
+nodejs.org
+postgresql.com
+rithmschool.com
+
+$cat nodejs.org
+<!doctype html>...
+{ "developers": ["joelburton", "elie"] }
+[
+  {
+    "bio": "Open source developer. Former dev at Apple...",
+    "name": "Joel Burton"
+  },
+  {
+    "bio": "Co-founder + Lead Instructor @rithmschool ",
+    "name": "Elie Schoppik"
+  }
+]
