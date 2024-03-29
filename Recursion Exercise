@@ -1,0 +1,33 @@
+product([2, 3, 4])   // 24
+longest(["hello", "hi", "hola"])  // 5
+everyOther("hello")  // "hlo"
+isPalindrome("tacocat")  // true
+isPalindrome("tacodog")  // false
+let animals = ["duck", "cat", "pony"];
+
+findIndex(animals, "cat");  // 1
+findIndex(animals, "porcupine");   // -1
+revString("porcupine") // 'enipucrop'
+let nestedObj = {
+  firstName: "Lester",
+  favoriteNumber: 22,
+  moreData: {
+    lastName: "Testowitz"
+  },
+  funFacts: {
+    moreStuff: {
+      anotherNumber: 100,
+      deeplyNestedString: {
+        almostThere: {
+          success: "you made it!"
+        }
+      }
+    },
+    favoriteString: "nice!"
+  }
+};
+
+gatherStrings(nestedObj) // ["Lester", "Testowitz", "you made it!", "nice!"];
+binarySearch([1,2,3,4],1) // 0
+binarySearch([1,2,3,4],3) // 2
+binarySearch([1,2,3,4],5) // -1
