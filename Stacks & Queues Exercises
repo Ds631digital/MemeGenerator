@@ -1,0 +1,248 @@
+/** Node: node for a queue. */
+
+class Node {
+  constructor(val) {
+    this.val = val;
+    this.next = null;
+  }
+}
+
+
+/** Queue: chained-together nodes where you can
+ *  remove from the front or add to the back. */
+class Queue {
+  constructor() {
+    this.first = null;
+    this.last = null;
+    this.size = 0;
+  }
+
+  /** enqueue(val): add new value to end of the queue. Returns undefined. */
+
+  enqueue(val) {
+    let node = new Node(val);
+
+    if (!this.first) {
+      this.first = node;
+      this.last = node;
+    } else {
+      this.last.next = node;
+      this.last = node;
+    }
+
+    this.size++;
+  }
+
+  /** dequeue(): remove the node from the start of the queue
+   * and return its value. Should throw an error if the queue is empty. */
+
+  dequeue() {
+    if (!this.first) throw new Error("Can't dequeue from an empty queue.");
+
+    let temp = this.first;
+    if (this.first == this.last) {
+      this.last = null;
+    }
+    this.first = this.first.next;
+    this.size--;
+    return temp.val;
+  }
+
+  /** peek(): return the value of the first node in the queue. */
+
+  peek() {
+    return this.first.val;
+  }
+
+  /** isEmpty(): return true if the queue is empty, otherwise false */
+
+  isEmpty() {
+    return this.size === 0;
+  }
+}
+
+module.exports = Queue;
+const Queue = require("./queue");
+
+let queue;
+
+beforeEach(function() {
+  queue = new Queue();
+});
+
+describe("enqueue", function() {
+  it("places the value at the end of the queue and returns undefined", function() {
+    expect(queue.enqueue(10)).toBe(undefined);
+    expect(queue.first.val).toBe(10);
+    expect(queue.last.val).toBe(10);
+    queue.enqueue(100);
+    expect(queue.first.val).toBe(10);
+    expect(queue.last.val).toBe(100);
+    queue.enqueue(1000);
+    expect(queue.first.val).toBe(10);
+    expect(queue.last.val).toBe(1000);
+  });
+});
+
+describe("dequeue", function() {
+  it("returns the value of the node removed", function() {
+    queue.enqueue(10);
+    queue.enqueue(100);
+    queue.enqueue(1000);
+    let removed = queue.dequeue();
+    expect(removed).toBe(10);
+    expect(queue.size).toBe(2);
+    queue.dequeue();
+    queue.dequeue();
+    expect(queue.size).toBe(0);
+  });
+
+  it("throws an error if the queue is empty", function() {
+    expect(() => queue.dequeue()).toThrow(Error);
+  });
+});
+
+describe("peek", function() {
+  it("returns the value at the start of the queue", function() {
+    queue.enqueue(3);
+    expect(queue.peek()).toBe(3);
+    queue.enqueue(5);
+    expect(queue.peek()).toBe(3);
+  });
+});
+
+describe("isEmpty", function() {
+  it("returns true for empty queues", function() {
+    expect(queue.isEmpty()).toBe(true);
+  });
+
+  it("returns false for nonempty queues", function() {
+    queue.enqueue(3);
+    expect(queue.isEmpty()).toBe(false);
+  });
+});
+/** Node: node for a stack. */
+
+class Node {
+  constructor(val) {
+    this.val = val;
+    this.next = null;
+  }
+}
+
+/** Stack: chained-together nodes where you can
+ *  remove from the top or add to the top. */
+class Stack {
+  constructor() {
+    this.first = null;
+    this.last = null;
+    this.size = 0;
+  }
+
+  /** push(val): add new value to end of the stack. Returns undefined. */
+
+  push(val) {
+    let node = new Node(val);
+
+    if (!this.first) {
+      this.first = node;
+      this.last = node;
+    } else {
+      let tmp = this.first;
+      this.first = node;
+      this.first.next = tmp;
+    }
+
+    this.size++;
+  }
+
+  /** pop(): remove the node from the top of the stack
+   * and return its value. Should throw an error if the stack is empty. */
+
+  pop() {
+    if (!this.first) throw new Error("Can't pop from an empty stack.");
+
+    let temp = this.first;
+
+    if (this.first == this.last) {
+      this.last = null;
+    }
+
+    this.first = this.first.next;
+    this.size--;
+    return temp.val;
+  }
+
+  /** peek(): return the value of the last node in the stack. */
+
+  peek() {
+    return this.first.val;
+  }
+
+  /** isEmpty(): return true if the stack is empty, otherwise false */
+
+  isEmpty() {
+    return this.size === 0;
+  }
+}
+
+module.exports = Stack;
+const Stack = require("./stack");
+
+let stack;
+
+beforeEach(function() {
+  stack = new Stack();
+});
+
+describe("push", function() {
+  it("places the value at the top of the stack and returns undefined", function() {
+    expect(stack.push(10)).toBe(undefined);
+    expect(stack.first.val).toBe(10);
+    expect(stack.last.val).toBe(10);
+    stack.push(100);
+    expect(stack.first.val).toBe(100);
+    expect(stack.last.val).toBe(10);
+    stack.push(1000);
+    expect(stack.first.val).toBe(1000);
+    expect(stack.last.val).toBe(10);
+  });
+});
+
+describe("pop", function() {
+  it("returns the value of the node removed", function() {
+    stack.push(10);
+    stack.push(100);
+    stack.push(1000);
+    var removed = stack.pop();
+    expect(removed).toBe(1000);
+    expect(stack.size).toBe(2);
+    stack.pop();
+    stack.pop();
+    expect(stack.size).toBe(0);
+  });
+
+  it("throws an error if the stack is empty", function() {
+    expect(() => stack.pop()).toThrow(Error);
+  });
+});
+
+describe("peek", function() {
+  it("returns the value at the start of the stack", function() {
+    stack.push(3);
+    expect(stack.peek()).toBe(3);
+    stack.push(5);
+    expect(stack.peek()).toBe(5);
+  });
+});
+
+describe("isEmpty", function() {
+  it("returns true for empty stacks", function() {
+    expect(stack.isEmpty()).toBe(true);
+  });
+
+  it("returns false for nonempty stacks", function() {
+    stack.push(3);
+    expect(stack.isEmpty()).toBe(false);
+  });
+});
