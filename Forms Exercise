@@ -1,0 +1,267 @@
+import React from "react";
+import BoxList from "./BoxList";
+
+function App() {
+  return (
+    <div>
+      <BoxList />
+    </div>
+  );
+}
+
+export default App;
+import React from "react";
+import { render } from "@testing-library/react";
+import App from "./App";
+
+it("renders without crashing", function() {
+  render(<App />);
+});
+
+it("matches snapshot", function() {
+  const { asFragment } = render(<App />);
+  expect(asFragment()).toMatchSnapshot();
+});
+import React from "react";
+
+function Box({
+  id,
+  handleRemove,
+  width = 5,
+  height = 5,
+  backgroundColor = "blue"
+}) {
+  const remove = () => handleRemove(id);
+  return (
+    <div>
+      <div
+        style={{
+          height: `${height}em`,
+          width: `${width}em`,
+          backgroundColor
+        }}
+      />
+      <button onClick={remove}>Remove The Box!</button>
+    </div>
+  );
+}
+
+export default Box;
+import React from "react";
+import { render } from "@testing-library/react";
+import Box from "./Box";
+
+it("renders without crashing", function() {
+  render(<Box />);
+});
+
+it("matches snapshot", function() {
+  const { asFragment } = render(<Box />);
+  expect(asFragment()).toMatchSnapshot();
+});
+import React, { useState } from "react";
+import Box from "./Box";
+import NewBoxForm from "./NewBoxForm";
+
+function BoxList() {
+  const [boxes, setBoxes] = useState([]);
+  const add = boxObj => {
+    setBoxes(boxes => [...boxes, boxObj]);
+  };
+  const remove = id => {
+    setBoxes(boxes => boxes.filter(box => box.id !== id));
+  };
+
+  const boxComponents = boxes.map(box => (
+    <Box
+      key={box.id}
+      id={box.id}
+      width={box.width}
+      height={box.height}
+      handleRemove={remove}
+      backgroundColor={box.backgroundColor}
+    />
+  ));
+
+  return (
+    <div>
+      <NewBoxForm createBox={add} />
+      {boxComponents}
+    </div>
+  );
+}
+
+export default BoxList;
+import React from "react";
+import { render, fireEvent, wait } from "@testing-library/react";
+import BoxList from "./BoxList";
+
+function addBox(boxList, height = "2", width = "2", color = "peachpuff") {
+  const heightInput = boxList.getByLabelText("Height");
+  const widthInput = boxList.getByLabelText("Width");
+  const backgroundInput = boxList.getByLabelText("Background Color");
+  fireEvent.change(backgroundInput, { target: { value: color } });
+  fireEvent.change(widthInput, { target: { value: width } });
+  fireEvent.change(heightInput, { target: { value: height } });
+  const button = boxList.getByText("Add a new box!");
+  fireEvent.click(button);
+}
+
+it("renders without crashing", function() {
+  render(<BoxList />);
+});
+
+it("matches snapshot", function() {
+  const { asFragment } = render(<BoxList />);
+  expect(asFragment()).toMatchSnapshot();
+});
+
+it("can add a new box", function() {
+  const boxList = render(<BoxList />);
+
+  // no boxes yet
+  expect(boxList.queryByText("Remove The Box!")).not.toBeInTheDocument();
+
+  addBox(boxList);
+
+  // expect to see a box
+  const removeButton = boxList.getByText("Remove The Box!");
+  expect(removeButton).toBeInTheDocument();
+  expect(removeButton.previousSibling).toHaveStyle(`
+    width: 2em;
+    height: 2em;
+    background-color: peachpuff;
+  `);
+  // expect form to be empty
+  expect(boxList.getAllByDisplayValue("")).toHaveLength(3);
+
+  // expect(asFragment()).toMatchSnapshot();
+});
+
+it("can remove a box", function() {
+  const boxList = render(<BoxList />);
+  addBox(boxList);
+
+  const removeButton = boxList.getByText("Remove The Box!");
+
+  // click the remove button and the box should be gone
+  fireEvent.click(removeButton);
+  expect(removeButton).not.toBeInTheDocument();
+});
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+import React, { useState } from "react";
+import { v4 as uuid } from 'uuid';
+
+
+function NewBoxForm({ createBox }) {
+  const [formData, setFormData] = useState({
+    height: "",
+    width: "",
+    backgroundColor: ""
+  });
+
+  const handleChange = evt => {
+    const { name, value } = evt.target;
+    setFormData(formData => ({
+      ...formData,
+      [name]: value
+    }));
+  };
+
+  const gatherInput = evt => {
+    evt.preventDefault();
+    createBox({ ...formData, id: uuid() });
+    setFormData({ height: "", width: "", backgroundColor: "" });
+  };
+
+  return (
+    <div>
+      <form onSubmit={gatherInput}>
+        <div>
+          <label htmlFor="height">Height</label>
+          <input
+            onChange={handleChange}
+            type="text"
+            name="height"
+            value={formData.height}
+            id="height"
+          />
+        </div>
+        <div>
+          <label htmlFor="width">Width</label>
+          <input
+            onChange={handleChange}
+            type="text"
+            name="width"
+            id="width"
+            value={formData.width}
+          />
+        </div>
+        <div>
+          <label htmlFor="backgroundColor">Background Color</label>
+          <input
+            onChange={handleChange}
+            type="text"
+            name="backgroundColor"
+            value={formData.backgroundColor}
+            id="backgroundColor"
+          />
+        </div>
+        <button id="newBoxButton">Add a new box!</button>
+      </form>
+    </div>
+  );
+}
+
+export default NewBoxForm;
+import React from "react";
+import { render } from "@testing-library/react";
+import NewBoxForm from "./NewBoxForm";
+
+it("renders without crashing", function() {
+  render(<NewBoxForm />);
+});
+
+it("matches snapshot", function() {
+  const { asFragment } = render(<NewBoxForm />);
+  expect(asFragment()).toMatchSnapshot();
+});
+const reportWebVitals = onPerfEntry => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom/extend-expect';
