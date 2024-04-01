@@ -1,0 +1,725 @@
+/** BinaryTreeNode: node for a general tree. */
+
+class BinaryTreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val;
+    this.left = left;
+    this.right = right;
+  }
+}
+
+class BinaryTree {
+  constructor(root = null) {
+    this.root = root;
+  }
+
+  /** minDepth(): return the minimum depth of the tree -- that is,
+   * the length of the shortest path from the root to a leaf. */
+
+  minDepth() {
+    if (!this.root) return 0;
+
+    function minDepthHelper(node) {
+      if (node.left === null && node.right === null) return 1;
+      if (node.left === null) return minDepthHelper(node.right) + 1;
+      if (node.right === null) return minDepthHelper(node.left) + 1;
+      return (
+        Math.min(minDepthHelper(node.left), minDepthHelper(node.right)) + 1
+      );
+    }
+
+    return minDepthHelper(this.root);
+  }
+
+  /** maxDepth(): return the maximum depth of the tree -- that is,
+   * the length of the longest path from the root to a leaf. */
+
+  maxDepth() {
+    if (!this.root) return 0;
+
+    function maxDepthHelper(node) {
+      if (node.left === null && node.right === null) return 1;
+      if (node.left === null) return maxDepthHelper(node.right) + 1;
+      if (node.right === null) return maxDepthHelper(node.left) + 1;
+      return (
+        Math.max(maxDepthHelper(node.left), maxDepthHelper(node.right)) + 1
+      );
+    }
+
+    return maxDepthHelper(this.root);
+  }
+
+  /** maxSum(): return the maximum sum you can obtain by traveling along a path in the tree.
+   * The path doesn't need to start at the root, but you can't visit a node more than once. */
+
+  maxSum() {
+    let result = 0;
+
+    function maxSumHelper(node) {
+      if (node === null) return 0;
+      const leftSum = maxSumHelper(node.left);
+      const rightSum = maxSumHelper(node.right);
+      result = Math.max(result, node.val + leftSum + rightSum);
+      return Math.max(0, leftSum + node.val, rightSum + node.val);
+    }
+
+    maxSumHelper(this.root);
+    return result;
+  }
+
+  /** nextLarger(lowerBound): return the smallest value in the tree
+   * which is larger than lowerBound. Return null if no such value exists. */
+
+  nextLarger(lowerBound) {
+    if (!this.root) return null;
+
+    // let's use BFS for this!
+    let queue = [this.root];
+    let closest = null;
+
+    while (queue.length) {
+      let currentNode = queue.shift();
+      let currentVal = currentNode.val;
+      let higherThanLowerBound = currentVal > lowerBound;
+      let shouldReassignClosest = currentVal < closest || closest === null;
+
+      if (higherThanLowerBound && shouldReassignClosest) {
+        closest = currentVal;
+      }
+
+      if (currentNode.left) queue.push(currentNode.left);
+      if (currentNode.right) queue.push(currentNode.right);
+    }
+
+    return closest;
+  }
+
+  /** Further study!
+   * areCousins(node1, node2): determine whether two nodes are cousins
+   * (i.e. are at the same level but have different parents. ) */
+
+  areCousins(node1, node2) {
+    if (node1 === this.root || node2 === this.root) return false;
+
+    function findLevelAndParent(
+      nodeToFind,
+      currentNode,
+      level = 0,
+      data = { level: 0, parent: null }
+    ) {
+      if (data.parent) return data;
+      if (currentNode.left === nodeToFind || currentNode.right === nodeToFind) {
+        data.level = level + 1;
+        data.parent = currentNode;
+      }
+      if (currentNode.left) {
+        findLevelAndParent(nodeToFind, currentNode.left, level + 1, data);
+      }
+      if (currentNode.right) {
+        findLevelAndParent(nodeToFind, currentNode.right, level + 1, data);
+      }
+      return data;
+    }
+
+    let node1Info = findLevelAndParent(node1, this.root);
+    let node2Info = findLevelAndParent(node2, this.root);
+
+    let sameLevel =
+      node1Info && node2Info && node1Info.level === node2Info.level;
+    let differentParents =
+      node1Info && node2Info && node1Info.parent !== node2Info.parent;
+    return sameLevel && differentParents;
+  }
+
+  /** Further study!
+   * serialize(tree): serialize the BinaryTree object tree into a string.
+   *
+   * Output looks like this:
+   *   1 2 # # 3 4 # # 5 # #
+   *  Where # represents # children with a pre-order traversal.
+   */
+
+  static serialize(tree) {
+    const values = [];
+
+    function traverse(node) {
+      if (node) {
+        values.push(node.val);
+        traverse(node.left);
+        traverse(node.right);
+      } else {
+        values.push("#");
+      }
+    }
+
+    traverse(tree.root);
+    return values.join(" ");
+  }
+
+  /** Further study!
+   * deserialize(stringTree): deserialize stringTree into a BinaryTree object. */
+
+  static deserialize(stringTree) {
+    if (!stringTree) return null;
+
+    const values = stringTree.split(" ");
+
+    function buildTree() {
+      // building a tree starting from the beginning of the array
+      if (values.length) {
+        const currentVal = values.shift();
+
+        if (currentVal === "#") return null;
+
+        // remember to convert values back into numbers
+        let currentNode = new BinaryTreeNode(+currentVal);
+        currentNode.left = buildTree();
+        currentNode.right = buildTree();
+
+        return currentNode;
+      }
+    }
+
+    const root = buildTree();
+    return new BinaryTree(root);
+  }
+
+  /** Further study!
+   * lowestCommonAncestor(node1, node2): find the lowest common ancestor
+   * of two nodes in a binary tree. */
+
+  lowestCommonAncestor(node1, node2, currentNode=this.root) {
+    // base case 1: empty tree
+    if (currentNode === null) return null;
+
+    // base case 2: root is one of the target nodes
+    if (currentNode === node1 || currentNode === node2) return currentNode;
+
+    // recursively search the left sub-tree
+    const left = this.lowestCommonAncestor(node1, node2, currentNode.left);
+
+    // recursively search the right sub-tree
+    const right = this.lowestCommonAncestor(node1, node2, currentNode.right);
+
+    // if neither left nor right is null, currentNode is the ancestor
+    if (left !== null && right !== null) return currentNode;
+    
+    // if one node is not null, return it
+    if (left !== null || right !== null) return left || right;
+    
+    // left and right are both null, return null
+    if (left === null && right === null) return null;
+  }
+}
+
+module.exports = { BinaryTree, BinaryTreeNode };
+const { BinaryTree, BinaryTreeNode } = require("./binary-tree");
+
+let smallTree;
+let largeTree;
+let emptyTree;
+
+beforeEach(function() {
+  emptyTree = new BinaryTree();
+
+  // build small tree;
+  let smallLeft = new BinaryTreeNode(5);
+  let smallRight = new BinaryTreeNode(5);
+  let smallRoot = new BinaryTreeNode(6, smallLeft, smallRight);
+  smallTree = new BinaryTree(smallRoot);
+
+  // build large tree
+  let node6 = new BinaryTreeNode(1);
+  let node5 = new BinaryTreeNode(1);
+  let node4 = new BinaryTreeNode(2);
+  let node3 = new BinaryTreeNode(3, node4, node6);
+  let node2 = new BinaryTreeNode(5, node3, node5);
+  let node1 = new BinaryTreeNode(5);
+  let root = new BinaryTreeNode(6, node1, node2);
+  largeTree = new BinaryTree(root);
+});
+
+describe("minDepth", function() {
+  it("handles simple trees", function() {
+    expect(smallTree.minDepth()).toBe(2);
+  });
+
+  it("handles more complex trees", function() {
+    expect(largeTree.minDepth()).toBe(2);
+  });
+
+  it("handles empty trees", function() {
+    expect(emptyTree.minDepth()).toBe(0);
+  });
+});
+
+describe("maxDepth", function() {
+  it("handles simple trees", function() {
+    expect(smallTree.maxDepth()).toBe(2);
+  });
+
+  it("handles more complex trees", function() {
+    expect(largeTree.maxDepth()).toBe(4);
+  });
+
+  it("handles empty trees", function() {
+    expect(emptyTree.maxDepth()).toBe(0);
+  });
+});
+
+describe("maxSum", function() {
+  it("handles simple trees", function() {
+    expect(smallTree.maxSum()).toBe(16);
+  });
+
+  it("handles empty trees", function() {
+    expect(emptyTree.maxSum()).toBe(0);
+  });
+
+  it("handles more complex trees", function() {
+    expect(largeTree.maxSum()).toBe(21);
+  });
+
+  it("handles negative values", function() {
+    let node100 = new BinaryTreeNode(100);
+    let node8 = new BinaryTreeNode(8);
+    let nodeNeg4 = new BinaryTreeNode(-4);
+    let node2 = new BinaryTreeNode(2, nodeNeg4);
+    let nodeNeg3 = new BinaryTreeNode(-3, node8, node100);
+    let root = new BinaryTreeNode(10, node2, nodeNeg3);
+    let tree = new BinaryTree(root);
+
+    expect(tree.maxSum()).toBe(109);
+  });
+});
+
+describe("nextLarger", function() {
+  it("handles simple trees", function() {
+    expect(smallTree.nextLarger(4)).toBe(5);
+    expect(smallTree.nextLarger(5)).toBe(6);
+    expect(smallTree.nextLarger(6)).toBe(null);
+  });
+
+  it("handles empty trees", function() {
+    expect(emptyTree.nextLarger(0)).toBe(null);
+  });
+
+  it("handles more complex trees", function() {
+    expect(largeTree.nextLarger(1)).toBe(2);
+    expect(largeTree.nextLarger(2)).toBe(3);
+    expect(largeTree.nextLarger(3)).toBe(5);
+    expect(largeTree.nextLarger(4)).toBe(5);
+    expect(largeTree.nextLarger(5)).toBe(6);
+    expect(largeTree.nextLarger(6)).toBe(null);
+  });
+});
+
+describe("areCousins", function() {
+  it("returns true if they are cousins, false if not", function() {
+    let n7 = new BinaryTreeNode(7);
+    let n6 = new BinaryTreeNode(6);
+    let n5 = new BinaryTreeNode(5);
+    let n4 = new BinaryTreeNode(4);
+    let n3 = new BinaryTreeNode(3, n6, n7);
+    let n2 = new BinaryTreeNode(2, n4, n5);
+    let root = new BinaryTreeNode(1, n2, n3);
+    let tree = new BinaryTree(root);
+
+    expect(tree.areCousins(n4, n6)).toBe(true);
+    expect(tree.areCousins(n4, n7)).toBe(true);
+    expect(tree.areCousins(n5, n6)).toBe(true);
+    expect(tree.areCousins(n5, n7)).toBe(true);
+    expect(tree.areCousins(n2, n3)).toBe(false);
+    expect(tree.areCousins(n4, n5)).toBe(false);
+    expect(tree.areCousins(n6, n7)).toBe(false);
+    expect(tree.areCousins(n4, n3)).toBe(false);
+    expect(tree.areCousins(root, n3)).toBe(false);
+  });
+});
+
+describe("serialize and deserialize", function() {
+  let myTree;
+
+  beforeEach(function() {
+    let root = new BinaryTreeNode(1);
+    root.left = new BinaryTreeNode(2);
+    root.right = new BinaryTreeNode(3);
+    root.right.left = new BinaryTreeNode(4);
+    root.right.right = new BinaryTreeNode(5);
+
+    myTree = new BinaryTree(root);
+  });
+
+  it("serializes trees into strings", function() {
+    // Failure message:
+    // The 'serialize' function needs to output a string.
+
+    expect(typeof BinaryTree.serialize(myTree)).toBe("string");
+  });
+
+  it("deserializes strings into BinaryTree objects", function() {
+    // Failure message:
+    // The 'deserialize' function needs to output a BinaryTreeNode
+
+    let serialized = BinaryTree.serialize(myTree);
+    let result = BinaryTree.deserialize(serialized);
+    expect(result instanceof BinaryTree).toBe(true);
+  });
+
+  it("reverses one another", function() {
+    // Failure message:
+    // the function 'deserialize' should perfectly reverse the function 'serialize'
+
+    let serialized = BinaryTree.serialize(myTree);
+    let result = BinaryTree.deserialize(serialized);
+    expect(result).toEqual(myTree);
+  });
+
+  it("is a pure function", function() {
+    // Failure message:
+    // original tree must be unchanged
+
+    let root = new BinaryTreeNode(1);
+    root.left = new BinaryTreeNode(2);
+    root.right = new BinaryTreeNode(3);
+    root.right.left = new BinaryTreeNode(4);
+    root.right.right = new BinaryTreeNode(5);
+
+    myTreeCopy = new BinaryTree(root);
+
+    let serialized = BinaryTree.serialize(myTree);
+    BinaryTree.deserialize(serialized);
+
+    expect(myTree).toEqual(myTreeCopy);
+  });
+});
+
+describe("lowestCommonAncestor", function() {
+  it("returns the lowest common ancestor", function() {
+    // Failure message:
+    // failed for tree (same as test examples)
+    const root = new BinaryTreeNode(3);
+    const tree = new BinaryTree(root);
+
+    /* build left subtree */
+
+    const left = new BinaryTreeNode(5);
+    root.left = left;
+
+    const leftLeft = new BinaryTreeNode(6);
+    left.left = leftLeft;
+
+    const leftRight = new BinaryTreeNode(2);
+    left.right = leftRight;
+
+    const leftRightLeft = new BinaryTreeNode(7);
+    leftRight.left = leftRightLeft;
+
+    const leftRightRight = new BinaryTreeNode(4);
+    leftRight.right = leftRightRight;
+
+    /* build right subtree */
+
+    const right = new BinaryTreeNode(1);
+    root.right = right;
+
+    const right_left = new BinaryTreeNode(0);
+    right.left = right_left;
+
+    const right_right = new BinaryTreeNode(8);
+    right.right = right_right;
+
+    expect(tree.lowestCommonAncestor(left, right)).toBe(root);
+    expect(tree.lowestCommonAncestor(leftRight, leftRightLeft)).toBe(leftRight);
+    expect(tree.lowestCommonAncestor(leftRightLeft, leftLeft)).toBe(left);
+    expect(tree.lowestCommonAncestor(right_left, right_right)).toBe(right);
+  });
+});
+function TreeNode(val) {
+  this.val = val;
+  this.left = null;
+  this.right = null;
+}
+
+/**
+ * O(N) time complexity
+ * O(1) space complexity
+ */
+function lowestCommonAncestor(root, p, q) {
+  /* base case 1: root is null */
+  if (root === null) {
+    return null;
+  }
+
+  /* base case 2: root is one of the target nodes */
+  if (root === p || root === q) {
+    return root;
+  }
+
+  /* recursively search the left sub-tree */
+  const left = lowestCommonAncestor(root.left, p, q);
+
+  /* recursively search the right sub-tree */
+  const right = lowestCommonAncestor(root.right, p, q);
+
+  /* if both left and right are valid, root is the ancestor */
+  if (left !== null && right !== null) {
+    return root;
+  }
+  /* 
+    otherwise, if one node was legit and not the other,
+     return whichever node was legit
+  */
+  else if (left !== null || right !== null) {
+    return left || right;
+  }
+  /* if neither left nor right were legit, return null */
+  else if (left === null && right === null) {
+    return null;
+  }
+}
+
+
+/**
+ * Same as the above but more concise for all of you code golfers
+ */
+function lowestCommonAncestorShorthand(root, p, q) {
+  if (!root || root === p || root === q) return root;
+  const left = lowestCommonAncestor(root.left, p, q);
+  const right = lowestCommonAncestor(root.right, p, q);
+  return left && right ? root : left || right;
+}
+
+module.exports = { TreeNode, lowestCommonAncestor };
+const { lowestCommonAncestor, TreeNode} = require("./lca")
+
+describe("LCA", function() {
+  it("functions_exist", function() {
+    // Failure message:
+    // do not mess with TreeNode or lowestCommonAncestor function signatures
+    expect(typeof TreeNode === "function").toBe(true);
+    expect(typeof lowestCommonAncestor === "function").toBe(true);
+  });
+  it("passes_example_tree", function() {
+    // Failure message:
+    // failed for tree (same as test examples)
+    const root = new TreeNode(3);
+
+    /* build left subtree */
+
+    const left = new TreeNode(5);
+    root.left = left;
+
+    const left_left = new TreeNode(6);
+    left.left = left_left;
+
+    const left_right = new TreeNode(2);
+    left.right = left_right;
+
+    const left_right_left = new TreeNode(7);
+    left_right.left = left_right_left;
+
+    const left_right_right = new TreeNode(4);
+    left_right.right = left_right_right;
+
+    /* build right subtree */
+
+    const right = new TreeNode(1);
+    root.right = right;
+
+    const right_left = new TreeNode(0);
+    right.left = right_left;
+
+    const right_right = new TreeNode(8);
+    right.right = right_right;
+
+    /* test examples */
+
+    // root = 3, p = 5, q = 1
+    expect(lowestCommonAncestor(root, left, right)).toBe(root);
+    // --> root (3)
+
+    // root = 3, p = 2, q = 7
+    expect(lowestCommonAncestor(root, left_right, left_right_left)).toBe(
+      left_right
+    );
+    // --> left_right (2)
+
+    // root = 3, p = 7, q = 6
+    expect(lowestCommonAncestor(root, left_right_left, left_left)).toBe(left);
+    // --> left (5)
+
+    // root = 3, p = 8, q = 0
+    expect(lowestCommonAncestor(root, right_left, right_right)).toBe(right);
+    // --> right (1)
+  });
+});
+/** TreeNode: node for a general tree. */
+
+class TreeNode {
+  constructor(val, children = []) {
+    this.val = val;
+    this.children = children;
+  }
+}
+
+class Tree {
+  constructor(root = null) {
+    this.root = root;
+  }
+
+  /** sumValues(): add up all of the values in the tree. */
+
+  sumValues() {
+    if (!this.root) return 0;
+
+    let total = this.root.val;
+
+    function sumHelper(node) {
+      // go through all the children for a Node
+      for (let child of node.children) {
+        // accumulate all values
+        total += child.val;
+        // if it has any children
+        if (child.children.length > 0) {
+          // recurse with the child as the root
+          sumHelper(child);
+        }
+      }
+    }
+
+    sumHelper(this.root);
+    return total;
+  }
+
+  /** countEvens(): count all of the nodes in the tree with even values. */
+
+  countEvens() {
+    if (!this.root) return 0;
+
+    let count = this.root.val % 2 === 0 ? 1 : 0;
+
+    function countEvensHelper(node) {
+      // go through all the children for a Node
+      for (let child of node.children) {
+        // count the child if the value is even
+        if (child.val % 2 === 0) count++;
+        // if it has any children
+        if (child.children.length > 0) {
+          // recurse with the child as the root
+          countEvensHelper(child);
+        }
+      }
+    }
+
+    countEvensHelper(this.root);
+    return count;
+  }
+
+  /** numGreater(lowerBound): return a count of the number of nodes
+   * whose value is greater than lowerBound. */
+
+  numGreater(lowerBound) {
+    if (!this.root) return 0;
+
+    let count = this.root.val > lowerBound ? 1 : 0;
+
+    function countEvensHelper(node) {
+      // go through all the children for a Node
+      for (let child of node.children) {
+        // count the child if the value is greater than lowerBound
+        if (child.val > lowerBound) count++;
+        // if it has any children
+        if (child.children.length > 0) {
+          // recurse with the child as the root
+          countEvensHelper(child);
+        }
+      }
+    }
+
+    countEvensHelper(this.root);
+    return count; 
+  }
+}
+
+module.exports = { Tree, TreeNode };
+const { Tree, TreeNode } = require("./tree");
+
+let smallTree;
+let largeTree;
+let emptyTree;
+
+beforeEach(function() {
+  emptyTree = new Tree();
+
+  // build small tree
+  let nSmall = new TreeNode(1);
+  let nSmall2 = new TreeNode(2);
+  nSmall.children.push(nSmall2);
+  smallTree = new Tree(nSmall);
+
+  // build large tree
+  let n = new TreeNode(1);
+  let n2 = new TreeNode(2);
+  let n3 = new TreeNode(3);
+  let n4 = new TreeNode(4);
+  let n5 = new TreeNode(5);
+  let n6 = new TreeNode(6);
+  let n7 = new TreeNode(7);
+  let n8 = new TreeNode(8);
+
+  n.children = [n2, n3, n4];
+
+  n4.children.push(n5, n6);
+  n6.children.push(n7);
+  n7.children.push(n8);
+
+  largeTree = new Tree(n);
+});
+
+describe("sumValues", function() {
+  it("sums simple trees", function() {
+    expect(smallTree.sumValues()).toEqual(3);
+  });
+
+  it("sums more complicated trees", function() {
+    expect(largeTree.sumValues()).toEqual(36);
+  });
+
+  it("sums up an empty tree", function() {
+    expect(emptyTree.sumValues()).toEqual(0);
+  });
+});
+
+describe("countEvens", function() {
+  it("counts nodes in simple trees", function() {
+    expect(smallTree.countEvens()).toEqual(1);
+  });
+
+  it("counts Treenodes in more complicated trees", function() {
+    expect(largeTree.countEvens()).toEqual(4);
+  });
+
+  it("counts empty", function() {
+    expect(emptyTree.countEvens()).toEqual(0);
+  });
+});
+
+describe("numGreater", function() {
+  it("counts nodes in small trees", function() {
+    expect(smallTree.numGreater(0)).toEqual(2);
+    expect(smallTree.numGreater(1)).toEqual(1);
+    expect(smallTree.numGreater(2)).toEqual(0);
+    expect(smallTree.numGreater(3)).toEqual(0);
+  });
+
+  it("counts nodes in larger trees", function() {
+    expect(largeTree.numGreater(0)).toEqual(8);
+    expect(largeTree.numGreater(4)).toEqual(4);
+    expect(largeTree.numGreater(8)).toEqual(0);
+  });
+
+  it("counts nodes in an empty  tree", function() {
+    expect(emptyTree.numGreater(0)).toEqual(0);
+  });
+});
