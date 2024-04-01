@@ -1,0 +1,224 @@
+beforeEach(function() {
+  jest
+    .spyOn(Math, "random")
+    .mockReturnValueOnce(0.25)
+    .mockReturnValueOnce(0.75);
+});
+
+afterEach(function() {
+  Math.random.mockRestore();
+});
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+import "./App.css";
+import Carousel from "./Carousel";
+import photos from "./photos.js";
+
+/** App component, renders Carousel
+ * 
+ * Props: none
+ * State: none
+ * 
+ * App --> Carousel
+ */
+
+function App() {
+
+  // In real life, this data would probably come from an AJAX call.
+  // For our purposes, we're just importing from another file.
+  const carouselPhotos = photos;
+  const carouselTitle = "Shells from far-away beaches";
+
+  return (
+    <div className="App">
+      <Carousel photos={carouselPhotos} title={carouselTitle} />
+    </div>
+  );
+}
+
+export default App;
+.Card {
+  display: flex;
+  flex-direction: column;
+}
+
+.Card-title {
+  margin: 0 0 0.5em 0;
+}
+
+.Card-small {
+  margin-top: 0.5em;
+  font-style: italic;
+}
+
+.Card-image {
+  border-radius: 8px;
+}
+import React from "react";
+import "./Card.css";
+
+/** Card: displays image.
+ * 
+ * Props:
+ * - caption: string describing the image
+ * - src: string for the image link
+ * - currNum: integer for what image we're on
+ * - totalNum: integer for how many images are in the collection
+ * 
+ * State:
+ * - none
+ * 
+ * App --> Carousel --> Card
+ */
+
+ function Card({caption, src, currNum, totalNum}) {
+
+  return (
+    <div className="Card">
+      <h4 className="Card-title">{caption}</h4>
+      <img className="Card-image" src={src} alt={caption} />
+      <small className="Card-small">
+        Image {currNum} of {totalNum}.
+      </small>
+    </div>
+  );
+}
+
+export default Card;
+  .Carousel-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Carousel-main > i {
+  cursor: pointer;
+  margin: 10px;
+  color: #aaa;
+}
+
+.Carousel-main > i:hover {
+  color: black;
+}
+
+.bi {
+  font-size: 35px
+}
+import { useState } from "react";
+import "./Carousel.css";
+import Card from "./Card";
+
+
+/** Carousel: displays images and arrows to navigate through them
+ * 
+ * Props:
+ * - photos: array of {src, caption} objects
+ * - title: string describing the collection of images
+ * 
+ * State:
+ * - currCardIdx: integer for current card index
+ * 
+ * App --> Carousel --> Card
+ */
+ function Carousel({ photos, title }) {
+  const [currCardIdx, setCurrCardIdx] = useState(0);
+
+  const currCard = photos[currCardIdx];
+  const total = photos.length;
+
+  //Increments currCardIdx state by 1
+  function goForward() {
+    setCurrCardIdx(currCardIdx + 1);
+  }
+
+  return (
+    <div className="Carousel">
+      <h1>{title}</h1>
+      <div className="Carousel-main">
+        <i
+          className="bi bi-arrow-left-circle"
+          onClick={goForward}
+        />
+        <Card
+          caption={currCard.caption}
+          src={currCard.src}
+          currNum={currCardIdx + 1}
+          totalNum={total}
+        />
+        <i
+          className="bi bi-arrow-right-circle"
+          onClick={goForward}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default Carousel;
+import { render, fireEvent } from "@testing-library/react";
+import Carousel from "./Carousel";
+import TEST_IMAGES from "./_testCommon.js";
+
+it("works when you click on the right arrow", function() {
+  const { container } = render(
+    <Carousel
+      photos={TEST_IMAGES}
+      title="images for testing"
+    />
+  );
+  // expect the first image to show, but not the second
+  expect(
+    container.querySelector('img[alt="testing image 1"]')
+  ).toBeInTheDocument();
+  expect(
+    container.querySelector('img[alt="testing image 2"]')
+  ).not.toBeInTheDocument();
+
+  // move forward in the carousel
+  const rightArrow = container.querySelector(".bi-arrow-right-circle");
+  fireEvent.click(rightArrow);
+
+  // expect the second image to show, but not the first
+  expect(
+    container.querySelector('img[alt="testing image 1"]')
+  ).not.toBeInTheDocument();
+  expect(
+    container.querySelector('img[alt="testing image 2"]')
+  ).toBeInTheDocument();
+});
