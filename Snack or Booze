@@ -1,0 +1,450 @@
+main {
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 15vh;
+  height: calc(100vh - 56px); /* router view - navbar height */
+  overflow: scroll;
+  color: white;
+}
+
+.card {
+  border-radius: 0;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+  margin-bottom: 15vh;
+}
+import axios from "axios";
+
+const BASE_API_URL = "http://localhost:5000";
+
+/* 
+  json-server will give you CRUD endpoints on snacks and drinks.
+  Here we've provided you with a single action to get all drinks.
+
+  You'll need to add to this class as you build features for the app.
+*/
+
+class SnackOrBoozeApi {
+
+  static async getSnacks() {
+    const result = await axios.get(`${BASE_API_URL}/snacks`);
+    return result.data;
+  }
+
+}
+
+export default SnackOrBoozeApi;
+import React, { useState, useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
+import "./App.css";
+import Home from "./Home";
+import SnackOrBoozeApi from "./Api";
+import NavBar from "./NavBar";
+import { Route, Switch } from "react-router-dom";
+import Menu from "./FoodMenu";
+import Snack from "./FoodItem";
+
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [snacks, setSnacks] = useState([]);
+
+  useEffect(() => {
+    async function getSnacks() {
+      let snacks = await SnackOrBoozeApi.getSnacks();
+      setSnacks(snacks);
+      setIsLoading(false);
+    }
+    getSnacks();
+  }, []);
+
+  if (isLoading) {
+    return <p>Loading &hellip;</p>;
+  }
+
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <NavBar />
+        <main>
+          <Switch>
+            <Route exact path="/">
+              <Home snacks={snacks} />
+            </Route>
+            <Route exact path="/snacks">
+              <Menu snacks={snacks} title="Snacks" />
+            </Route>
+            <Route path="/snacks/:id">
+              <Snack items={snacks} cantFind="/snacks" />
+            </Route>
+            <Route>
+              <p>Hmmm. I can't seem to find what you want.</p>
+            </Route>
+          </Switch>
+        </main>
+      </BrowserRouter>
+    </div>
+  );
+}
+
+export default App;
+import React from "react";
+import { Redirect, useParams } from "react-router-dom";
+import { Card, CardBody, CardTitle, CardText } from "reactstrap";
+
+function FoodItem({ items, cantFind }) {
+  const { id } = useParams();
+
+  let snack = items.find(snack => snack.id === id);
+  if (!snack) return <Redirect to={cantFind} />;
+
+  return (
+    <section>
+      <Card>
+        <CardBody>
+          <CardTitle className="font-weight-bold text-center">
+            {snack.name}
+          </CardTitle>
+          <CardText className="font-italic">{snack.description}</CardText>
+          <p>
+            <b>Recipe:</b> {snack.recipe}
+          </p>
+          <p>
+            <b>Serve:</b> {snack.serve}
+          </p>
+        </CardBody>
+      </Card>
+    </section>
+  );
+}
+
+export default FoodItem;
+.card {
+    background-color: #101010d1;
+    color: #f0f2f5;
+    border: 20px solid rgba(16, 16, 16, 0.63);
+    box-shadow: inset 0 0 0 2px #ffffff;
+    box-sizing: border-box;
+}
+
+.list-group a {
+    margin-top: 1rem;
+    border-left: 5px dotted;
+    color: white;
+}
+
+.list-group a:not(:last-of-type) li {
+    border-bottom: none !important;
+}
+
+.list-group a:hover {
+    text-decoration: none;
+    border-left-style: solid;
+    border-left-width: 3px;
+}
+
+.list-group a:hover li {
+    margin-left: 2px;
+}
+
+.list-group-item {
+    background-color: transparent;
+    font-weight: bold;
+}
+
+.list-group-item:hover {
+    cursor: pointer;
+}
+
+.inner-border {
+    border: 20px solid #101010d1;
+    box-shadow: inset 0 0 0 10px #ffffff;
+    box-sizing: border-box;
+}
+import React from "react";
+import { Link } from "react-router-dom";
+import "./FoodMenu.css";
+import {
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  ListGroup,
+  ListGroupItem
+} from "reactstrap";
+
+function FoodMenu({ snacks }) {
+  return (
+    <section className="col-md-4">
+      <Card>
+        <CardBody>
+          <CardTitle className="font-weight-bold text-center">
+            Food Menu
+          </CardTitle>
+          <CardText>
+            Some quick example text to build on the card title and make up the
+            bulk of the card's content.
+          </CardText>
+          <ListGroup>
+            {snacks.map(snack => (
+              <Link to={`/snacks/${snack.id}`} key={snack.id}>
+                <ListGroupItem>{snack.name}</ListGroupItem>
+              </Link>
+            ))}
+          </ListGroup>
+        </CardBody>
+      </Card>
+    </section>
+  );
+}
+
+export default FoodMenu;
+import React from "react";
+import { Card, CardBody, CardTitle } from "reactstrap";
+
+function Home() {
+  return (
+    <section className="col-md-8">
+      <Card>
+        <CardBody className="text-center">
+          <CardTitle>
+            <h3 className="font-weight-bold">
+              Welcome to Silicon Valley's premier dive cafe!
+            </h3>
+          </CardTitle>
+        </CardBody>
+      </Card>
+    </section>
+  );
+}
+
+export default Home;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+  "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+  sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: scroll;
+  background: url(https://cdn.wallpaper.com/main/himitsu.jpg) no-repeat;
+  background-size: cover;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import App from "./App";
+import * as serviceWorker from "./serviceWorker";
+
+ReactDOM.render(<App />, document.getElementById("root"));
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: http://bit.ly/CRA-PWA
+serviceWorker.unregister();
+nav {
+  background-color: black;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}
+
+.nav-item {
+  width: 100px;
+  text-align: center;
+}
+
+nav a {
+  color: #f0f2f5;
+  text-decoration: none;
+}
+
+nav a.active {
+  color: #f0f2f5;
+  font-weight: bold;
+  border-bottom: 5px dotted;
+  box-sizing: border-box;
+}
+
+nav a.active:hover {
+  color: #f0f2f5 !important;
+}
+
+nav a:hover {
+  text-decoration: none;
+  color: #f0f2f5;
+}
+
+nav a.active.navbar-brand {
+  border-bottom: none;
+}
+
+nav a:not(.navbar-brand):hover {
+  font-weight: bold;
+}
+import React from "react";
+import "./NavBar.css";
+import { NavLink } from "react-router-dom";
+import { Navbar, Nav, NavItem } from "reactstrap";
+
+function NavBar() {
+  return (
+    <div>
+      <Navbar expand="md">
+        <NavLink exact to="/" className="navbar-brand">
+          Snack or Booze
+        </NavLink>
+
+        <Nav className="ml-auto" navbar>
+          <NavItem>
+            <NavLink to="/snacks">Snacks</NavLink>
+          </NavItem>
+        </Nav>
+      </Navbar>
+    </div>
+  );
+}
+
+export default NavBar;
+// This optional code is used to register a service worker.
+// register() is not called by default.
+
+// This lets the app load faster on subsequent visits in production, and gives
+// it offline capabilities. However, it also means that developers (and users)
+// will only see deployed updates on subsequent visits to a page, after all the
+// existing tabs open on the page have been closed, since previously cached
+// resources are updated in the background.
+
+// To learn more about the benefits of this model and instructions on how to
+// opt-in, read http://bit.ly/CRA-PWA
+
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+    // [::1] is the IPv6 localhost address.
+    window.location.hostname === '[::1]' ||
+    // 127.0.0.1/8 is considered localhost for IPv4.
+    window.location.hostname.match(
+      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    )
+);
+
+export function register(config) {
+  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    // The URL constructor is available in all browsers that support SW.
+    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+    if (publicUrl.origin !== window.location.origin) {
+      // Our service worker won't work if PUBLIC_URL is on a different origin
+      // from what our page is served on. This might happen if a CDN is used to
+      // serve assets; see https://github.com/facebook/create-react-app/issues/2374
+      return;
+    }
+
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+
+      if (isLocalhost) {
+        // This is running on localhost. Let's check if a service worker still exists or not.
+        checkValidServiceWorker(swUrl, config);
+
+        // Add some additional logging to localhost, pointing developers to the
+        // service worker/PWA documentation.
+        navigator.serviceWorker.ready.then(() => {
+          console.log(
+            'This web app is being served cache-first by a service ' +
+              'worker. To learn more, visit http://bit.ly/CRA-PWA'
+          );
+        });
+      } else {
+        // Is not localhost. Just register service worker
+        registerValidSW(swUrl, config);
+      }
+    });
+  }
+}
+
+function registerValidSW(swUrl, config) {
+  navigator.serviceWorker
+    .register(swUrl)
+    .then(registration => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) {
+          return;
+        }
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              // At this point, the updated precached content has been fetched,
+              // but the previous service worker will still serve the older
+              // content until all client tabs are closed.
+              console.log(
+                'New content is available and will be used when all ' +
+                  'tabs for this page are closed. See http://bit.ly/CRA-PWA.'
+              );
+
+              // Execute callback
+              if (config && config.onUpdate) {
+                config.onUpdate(registration);
+              }
+            } else {
+              // At this point, everything has been precached.
+              // It's the perfect time to display a
+              // "Content is cached for offline use." message.
+              console.log('Content is cached for offline use.');
+
+              // Execute callback
+              if (config && config.onSuccess) {
+                config.onSuccess(registration);
+              }
+            }
+          }
+        };
+      };
+    })
+    .catch(error => {
+      console.error('Error during service worker registration:', error);
+    });
+}
+
+function checkValidServiceWorker(swUrl, config) {
+  // Check if the service worker can be found. If it can't reload the page.
+  fetch(swUrl)
+    .then(response => {
+      // Ensure service worker exists, and that we really are getting a JS file.
+      const contentType = response.headers.get('content-type');
+      if (
+        response.status === 404 ||
+        (contentType != null && contentType.indexOf('javascript') === -1)
+      ) {
+        // No service worker found. Probably a different app. Reload the page.
+        navigator.serviceWorker.ready.then(registration => {
+          registration.unregister().then(() => {
+            window.location.reload();
+          });
+        });
+      } else {
+        // Service worker found. Proceed as normal.
+        registerValidSW(swUrl, config);
+      }
+    })
+    .catch(() => {
+      console.log(
+        'No internet connection found. App is running in offline mode.'
+      );
+    });
+}
+
+export function unregister() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.unregister();
+    });
+  }
+}
